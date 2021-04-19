@@ -38,6 +38,10 @@
  * Requires a Linux 3.3+ kernel
  */
 
+int perf_event_open(struct perf_event_attr *hw_event,
+                    pid_t pid, int cpu, int group_fd,
+                    unsigned long flags);
+
 #include "rdpmc.h"
 
 typedef unsigned long long u64;

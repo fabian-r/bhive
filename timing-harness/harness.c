@@ -215,8 +215,19 @@ struct pmc_counters *measure(
 
     // find out which PMCs are supported
     *l1_read_supported = is_event_supported(&l1_read_attr);
+    if (! *l1_read_supported) {
+        LOG("L1 cache read miss counter is not supported\n");
+    }
+
     *l1_write_supported = is_event_supported(&l1_write_attr);
+    if (! *l1_write_supported) {
+        LOG("L1 cache write miss counter is not supported\n");
+    }
+
     *icache_supported = is_event_supported(&icache_attr);
+    if (! *icache_supported) {
+        LOG("instruction cache miss counter is not supported\n");
+    }
 
     char *last_failing_inst = 0;
 
@@ -247,8 +258,10 @@ struct pmc_counters *measure(
       ptrace(PTRACE_GETREGS, pid, NULL, &regs);
       LOG("bad inst is at %p, signal = %d\n", (void *)regs.rip, sinfo.si_signo);
       LOG("VAL OF RSP = %p\n", (void *)regs.rsp);
-      if (sinfo.si_signo != 11 && sinfo.si_signo != 5)
+      if (sinfo.si_signo != 11 && sinfo.si_signo != 5) {
+        LOG("exotic signal recieved, aborting\n");
         break;
+      }
 
       // find out address causing the segfault
       void *fault_addr = sinfo.si_addr;
@@ -256,8 +269,10 @@ struct pmc_counters *measure(
       if (sinfo.si_signo == 5)
         fault_addr = (void *)INIT_VALUE;
 
-      if ((char *)regs.rip == last_failing_inst)
+      if ((char *)regs.rip == last_failing_inst) {
+        LOG("the same instruction failed twice, aborting\n");
         break;
+      }
 
 
       last_failing_inst = (char *)regs.rip;
@@ -265,8 +280,10 @@ struct pmc_counters *measure(
       if ((char *)regs.rip == first_legal_aux_mem_access) {
         mapping_done = 1;
         restart_addr = &map_aux_and_restart;
-      } else if (fault_addr == (void *)ADDR_OF_AUX_MEM)
+      } else if (fault_addr == (void *)ADDR_OF_AUX_MEM) {
+        LOG("fault address is the address of aux memory, aborting\n");
         break;
+      }
 
       restart_child(pid, restart_addr, fault_addr, shm_fd);
     }

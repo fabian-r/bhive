@@ -169,7 +169,11 @@ void emit_mov_rcx(char *inst, int val) {
 int is_event_supported(struct perf_event_attr *attr) {
   struct rdpmc_ctx ctx;
   int ok = !rdpmc_open_attr(attr, &ctx, 0);
-  rdpmc_close(&ctx);
+  if (ok) {
+    rdpmc_close(&ctx);
+  } else {
+    errno = 0;
+  }
   return ok;
 }
 

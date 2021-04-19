@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
 
   // print the result, ignore the first set of counters, which is garbage
   printf("Core_cyc\tL1_read_misses\tL1_write_misses\tiCache_misses\tContext_switches\n");
+  printf("# RESULTS START\n");
   int i;
   for (i = 1; i < HARNESS_ITERS; i++) {
     printf("%ld\t%ld\t%ld\t%ld\t%ld\n",
@@ -72,6 +73,7 @@ int main(int argc, char **argv) {
         icache_supported ? counters[i].icache_misses : -1,
         counters[i].context_switches);
   }
+  printf("# RESULTS END\n");
 
   return 0;
 }
